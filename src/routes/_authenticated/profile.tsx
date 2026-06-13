@@ -1,0 +1,187 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyProfile, updatePreferences, updateProfile } from "@/lib/profile.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { Bell, Moon, LogOut, ChevronRight, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+
+export const Route = createFileRoute("/_authenticated/profile")({
+  head: () => ({ meta: [{ title: "Profile — FreshTrack" }] }),
+  component: Profile,
+});
+
+function Profile() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const fetchProfile = useServerFn(getMyProfile);
+  const updatePrefsFn = useServerFn(updatePreferences);
+  const updateProfileFn = useServerFn(updateProfile);
+
+  const q = useSuspenseQuery({
+    queryKey: ["profile"],
+    queryFn: () => fetchProfile(),
+  });
+
+  const profile = q.data.profile;
+  const prefs = q.data.preferences;
+  const [name, setName] = useState(profile?.display_name ?? "");
+
+  useEffect(() => {
+    if (prefs?.dark_mode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }, [prefs?.dark_mode]);
+
+  const savePrefs = useMutation({
+    mutationFn: (patch: Record<string, boolean>) =>
+      updatePrefsFn({ data: patch }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+  });
+
+  const saveName = useMutation({
+    mutationFn: () => updateProfileFn({ data: { display_name: name } }),
+    onSuccess: () => {
+      toast.success("Saved");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+
+  async function signOut() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+
+  return (
+    <div className="px-5 pt-12">
+      <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+
+      <section className="mt-6 bg-surface rounded-3xl p-5 ring-1 ring-black/5">
+        <div className="flex items-center gap-4">
+          <div className="size-14 rounded-full bg-primary-soft text-primary text-xl grid place-items-center font-semibold">
+            {(name || "?").charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={80}
+              className="w-full bg-transparent text-base font-semibold outline-none"
+            />
+            <p className="text-xs text-muted-foreground">Display name</p>
+          </div>
+          {name !== (profile?.display_name ?? "") && (
+            <button
+              onClick={() => saveName.mutate()}
+              className="text-sm font-medium text-primary"
+            >
+              Save
+            </button>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <SectionTitle icon={Bell}>Notifications</SectionTitle>
+        <div className="mt-3 bg-surface rounded-2xl ring-1 ring-black/5 divide-y divide-border">
+          <Toggle
+            label="7 days before expiry"
+            checked={!!prefs?.notify_7_days}
+            onChange={(v) => savePrefs.mutate({ notify_7_days: v })}
+          />
+          <Toggle
+            label="3 days before"
+            checked={!!prefs?.notify_3_days}
+            onChange={(v) => savePrefs.mutate({ notify_3_days: v })}
+          />
+          <Toggle
+            label="1 day before"
+            checked={!!prefs?.notify_1_day}
+            onChange={(v) => savePrefs.mutate({ notify_1_day: v })}
+          />
+          <Toggle
+            label="On expiry day"
+            checked={!!prefs?.notify_expiry_day}
+            onChange={(v) => savePrefs.mutate({ notify_expiry_day: v })}
+          />
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <SectionTitle icon={Moon}>Appearance</SectionTitle>
+        <div className="mt-3 bg-surface rounded-2xl ring-1 ring-black/5">
+          <Toggle
+            label="Dark mode"
+            checked={!!prefs?.dark_mode}
+            onChange={(v) => savePrefs.mutate({ dark_mode: v })}
+          />
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <SectionTitle icon={ShieldCheck}>Privacy</SectionTitle>
+        <div className="mt-3 bg-surface rounded-2xl ring-1 ring-black/5 p-4 text-xs text-muted-foreground">
+          Your food data stays private and is only visible to you.
+        </div>
+      </section>
+
+      <button
+        onClick={signOut}
+        className="mt-8 w-full h-12 rounded-2xl bg-surface ring-1 ring-border text-destructive font-medium flex items-center justify-center gap-2"
+      >
+        <LogOut className="size-4" /> Sign out
+      </button>
+      <div className="h-12" />
+    </div>
+  );
+}
+
+function SectionTitle({
+  icon: Icon,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-1">
+      <Icon className="size-4 text-muted-foreground" />
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {children}
+      </h2>
+    </div>
+  );
+}
+
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between px-4 py-3.5">
+      <span className="text-sm font-medium">{label}</span>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 rounded-full transition-colors ${
+          checked ? "bg-primary" : "bg-muted"
+        }`}
+        role="switch"
+        aria-checked={checked}
+      >
+        <span
+          className={`absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform ${
+            checked ? "translate-x-5" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+    </label>
+  );
+}
