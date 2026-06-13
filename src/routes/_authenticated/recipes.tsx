@@ -107,7 +107,7 @@ function Recipes() {
             Select at least one ingredient.
           </p>
         )}
-        {recipesQ.data?.recipes?.map((r, idx) => (
+        {(recipesQ.data?.recipes as Array<{ title: string; description: string; cooking_time_minutes: number; difficulty: string; ingredients: string[]; instructions: string[]; uses: string[] }> | undefined)?.map((r, idx: number) => (
           <details
             key={idx}
             className="group bg-surface rounded-3xl ring-1 ring-black/5 overflow-hidden"
