@@ -11,7 +11,7 @@ import {
   Cell,
 } from "recharts";
 import { useMemo } from "react";
-import { format, startOfWeek, addWeeks, parseISO, isBefore } from "date-fns";
+import { format, startOfWeek, addWeeks, parseISO, isBefore, differenceInCalendarDays } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/stats")({
   head: () => ({ meta: [{ title: "Stats — FreshTrack" }] }),
