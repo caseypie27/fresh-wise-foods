@@ -21,7 +21,7 @@ type Item = {
 };
 
 export function FoodCard({ item }: { item: Item }) {
-  const status = computeStatus(item.status === "consumed" ? "" : item.expiry_date, item.status === "consumed");
+  const status = computeStatus(item.expiry_date, item.status === "consumed");
   const colors = statusColor(status);
   const days = daysUntilExpiry(item.expiry_date);
   const progress =
