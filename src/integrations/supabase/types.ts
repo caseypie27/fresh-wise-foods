@@ -14,7 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      food_items: {
+        Row: {
+          category: string | null
+          consumed_at: string | null
+          created_at: string
+          expiry_date: string
+          id: string
+          image_url: string | null
+          location: string | null
+          manufacturing_date: string | null
+          name: string
+          notes: string | null
+          quantity: number | null
+          status: Database["public"]["Enums"]["food_status"]
+          unit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          expiry_date: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          manufacturing_date?: string | null
+          name: string
+          notes?: string | null
+          quantity?: number | null
+          status?: Database["public"]["Enums"]["food_status"]
+          unit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          consumed_at?: string | null
+          created_at?: string
+          expiry_date?: string
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          manufacturing_date?: string | null
+          name?: string
+          notes?: string | null
+          quantity?: number | null
+          status?: Database["public"]["Enums"]["food_status"]
+          unit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          dark_mode: boolean
+          notify_1_day: boolean
+          notify_3_days: boolean
+          notify_7_days: boolean
+          notify_expiry_day: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          dark_mode?: boolean
+          notify_1_day?: boolean
+          notify_3_days?: boolean
+          notify_7_days?: boolean
+          notify_expiry_day?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          dark_mode?: boolean
+          notify_1_day?: boolean
+          notify_3_days?: boolean
+          notify_7_days?: boolean
+          notify_expiry_day?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +130,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      food_status: "fresh" | "expiring_soon" | "expired" | "consumed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +257,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      food_status: ["fresh", "expiring_soon", "expired", "consumed"],
+    },
   },
 } as const
