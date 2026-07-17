@@ -36,10 +36,13 @@ function Stats() {
 
   const items = itemsQ.data.items;
 
-  const { total, saved, wasted } = useMemo(() => {
+  const { total, saved, wasted, savedRM, wastedRM } = useMemo(() => {
     let saved = 0;
     let wasted = 0;
+    let savedRM = 0;
+    let wastedRM = 0;
     for (const i of items) {
+      const value = itemValue(i);
       if (i.status === "consumed" && i.consumed_at) {
         const consumedAt = parseISO(i.consumed_at);
         const expiry = parseISO(i.expiry_date);
@@ -48,22 +51,28 @@ function Stats() {
           format(consumedAt, "yyyy-MM-dd") === format(expiry, "yyyy-MM-dd")
         ) {
           saved++;
+          savedRM += value;
         } else {
           wasted++;
+          wastedRM += value;
         }
       } else {
         const days = differenceInCalendarDays(
           parseISO(i.expiry_date),
           new Date(),
         );
-        if (days < 0) wasted++;
+        if (days < 0) {
+          wasted++;
+          wastedRM += value;
+        }
       }
     }
-    return { total: items.length, saved, wasted };
+    return { total: items.length, saved, wasted, savedRM, wastedRM };
   }, [items]);
 
   const saveRate = total ? Math.round((saved / total) * 100) : 0;
-  const wasteRate = total ? Math.round((wasted / total) * 100) : 0;
+  const totalRM = savedRM + wastedRM;
+  const moneySaveRate = totalRM ? Math.round((savedRM / totalRM) * 100) : 0;
 
   const weeks = useMemo(() => {
     const arr = Array.from({ length: 6 }).map((_, idx) => {
@@ -71,6 +80,7 @@ function Stats() {
       return { start, label: format(start, "MMM d"), saved: 0, wasted: 0 };
     });
     for (const i of items) {
+      const value = itemValue(i);
       if (i.status === "consumed" && i.consumed_at) {
         const consumedAt = parseISO(i.consumed_at);
         const expiry = parseISO(i.expiry_date);
@@ -80,18 +90,25 @@ function Stats() {
         const w = arr.find(
           (w) => consumedAt >= w.start && consumedAt < addWeeks(w.start, 1),
         );
-        if (w) (isSaved ? w.saved++ : w.wasted++);
+        if (w) {
+          if (isSaved) w.saved += value;
+          else w.wasted += value;
+        }
       } else {
         const expiry = parseISO(i.expiry_date);
         if (differenceInCalendarDays(expiry, new Date()) < 0) {
           const w = arr.find(
             (w) => expiry >= w.start && expiry < addWeeks(w.start, 1),
           );
-          if (w) w.wasted++;
+          if (w) w.wasted += value;
         }
       }
     }
-    return arr;
+    return arr.map((w) => ({
+      ...w,
+      saved: Math.round(w.saved * 100) / 100,
+      wasted: Math.round(w.wasted * 100) / 100,
+    }));
   }, [items]);
 
   const bestWeek = weeks.reduce(
