@@ -49,6 +49,28 @@ function Home() {
   const expired = items.filter((i) => i.status === "expired");
   const consumed = items.filter((i) => i.status === "consumed");
 
+  // Money impact (RM)
+  let savedRM = 0;
+  let wastedRM = 0;
+  for (const i of items) {
+    const value = itemValue(i);
+    if (i.status === "consumed" && i.consumed_at) {
+      const consumedAt = parseISO(i.consumed_at);
+      const expiry = parseISO(i.expiry_date);
+      if (
+        isBefore(consumedAt, expiry) ||
+        consumedAt.toDateString() === expiry.toDateString()
+      ) {
+        savedRM += value;
+      } else {
+        wastedRM += value;
+      }
+    } else if (i.status === "expired") {
+      wastedRM += value;
+    }
+  }
+  const atRiskRM = expiringWeek.reduce((s, i) => s + itemValue(i), 0);
+
   const soonest = active
     .filter((i) => i.status !== "expired")
     .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date))
