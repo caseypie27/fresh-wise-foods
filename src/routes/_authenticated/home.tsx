@@ -110,7 +110,39 @@ function Home() {
         </Link>
       </header>
 
-      <section className="mt-6 grid grid-cols-2 gap-3">
+      {/* Money impact hero */}
+      <section className="mt-6 relative overflow-hidden rounded-[28px] p-5 bg-gradient-to-br from-primary via-primary to-[oklch(0.52_0.17_150)] text-primary-foreground">
+        <div className="absolute -right-14 -top-14 size-48 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex items-start justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest opacity-80 font-semibold flex items-center gap-1.5">
+              <Wallet className="size-3" /> Money saved
+            </p>
+            <p className="mt-1 text-3xl font-semibold tabular-nums leading-none">
+              {formatRM(savedRM)}
+            </p>
+            <p className="text-[11px] opacity-80 mt-1">
+              across {consumed.length} consumed item{consumed.length === 1 ? "" : "s"}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-widest opacity-80 font-semibold flex items-center gap-1.5 justify-end">
+              <TrendingDown className="size-3" /> Wasted
+            </p>
+            <p className="mt-1 text-lg font-semibold tabular-nums leading-none">
+              {formatRM(wastedRM)}
+            </p>
+          </div>
+        </div>
+        {atRiskRM > 0 && (
+          <div className="relative mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1.5 text-[11px] font-medium">
+            <span className="size-1.5 rounded-full bg-white animate-pulse" />
+            {formatRM(atRiskRM)} at risk this week
+          </div>
+        )}
+      </section>
+
+      <section className="mt-4 grid grid-cols-2 gap-3">
         <StatCard label="Total items" value={active.length} dot="bg-primary" />
         <StatCard
           label="Expiring this week"
