@@ -178,14 +178,17 @@ function Stats() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs uppercase tracking-widest opacity-80 font-semibold">
-              Save rate
+              Money saved
             </p>
-            <p className="mt-1 text-lg font-medium leading-snug">
+            <p className="mt-1 text-2xl font-semibold tabular-nums leading-none">
+              {formatRM(savedRM)}
+            </p>
+            <p className="mt-1 text-xs opacity-80">
               {saved} of {total} items reached your plate in time.
             </p>
             <div className="mt-3 inline-flex items-center gap-1 text-xs font-medium bg-white/15 px-2.5 py-1 rounded-full backdrop-blur-sm">
-              <ArrowUpRight className="size-3.5" />
-              {wasteRate}% waste rate
+              <Wallet className="size-3.5" />
+              {formatRM(wastedRM)} lost · {moneySaveRate}% saved
             </div>
           </div>
         </div>
@@ -195,16 +198,16 @@ function Stats() {
       <section className="mt-4 grid grid-cols-2 gap-3">
         <StatTile
           icon={Leaf}
-          label="Consumed before expiry"
-          value={saved}
-          hint="Saved in time"
+          label="Consumed in time"
+          value={formatRM(savedRM)}
+          hint={`${saved} item${saved === 1 ? "" : "s"} saved`}
           tone="success"
         />
         <StatTile
           icon={Trash2}
           label="Expired or wasted"
-          value={wasted}
-          hint="Missed the window"
+          value={formatRM(wastedRM)}
+          hint={`${wasted} item${wasted === 1 ? "" : "s"} lost`}
           tone="destructive"
         />
       </section>
@@ -213,9 +216,9 @@ function Stats() {
       <section className="mt-4 bg-surface rounded-3xl p-5 ring-1 ring-black/5">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-sm font-semibold">Weekly rhythm</h3>
+            <h3 className="text-sm font-semibold">Weekly money rhythm</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Saved vs wasted over 6 weeks
+              RM saved vs wasted over 6 weeks
             </p>
           </div>
           <div className="flex items-center gap-3 text-[11px] font-medium">
