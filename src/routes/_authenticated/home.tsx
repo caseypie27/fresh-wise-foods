@@ -5,9 +5,9 @@ import { listFoodItems } from "@/lib/items.functions";
 import { getMyProfile } from "@/lib/profile.functions";
 import { suggestRecipes } from "@/lib/ai.functions";
 import { FoodCard } from "@/components/food-card";
-import { computeStatus } from "@/lib/food-utils";
-import { Sparkles, ChefHat, Camera, Plus } from "lucide-react";
-import { format } from "date-fns";
+import { computeStatus, itemValue, formatRM } from "@/lib/food-utils";
+import { Sparkles, ChefHat, Camera, Plus, Wallet, TrendingDown } from "lucide-react";
+import { format, parseISO, isBefore } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — FreshTrack" }] }),
