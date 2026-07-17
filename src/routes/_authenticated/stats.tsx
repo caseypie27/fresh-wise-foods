@@ -19,7 +19,8 @@ import {
   isBefore,
   differenceInCalendarDays,
 } from "date-fns";
-import { Leaf, TrendingUp, Trash2, Sparkles, ArrowUpRight } from "lucide-react";
+import { itemValue, formatRM } from "@/lib/food-utils";
+import { Leaf, TrendingUp, Trash2, Sparkles, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/stats")({
   head: () => ({ meta: [{ title: "Stats — FreshTrack" }] }),
