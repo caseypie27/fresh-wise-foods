@@ -16,6 +16,7 @@ const ItemInput = z.object({
     .nullable(),
   image_url: z.string().max(2048).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
+  price: z.number().min(0).max(100000).optional().nullable(),
 });
 
 export const listFoodItems = createServerFn({ method: "POST" })
