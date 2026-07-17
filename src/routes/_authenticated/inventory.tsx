@@ -3,9 +3,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listFoodItems } from "@/lib/items.functions";
 import { FoodCard } from "@/components/food-card";
-import { computeStatus, type FoodStatus } from "@/lib/food-utils";
+import { computeStatus, itemValue, formatRM, type FoodStatus } from "@/lib/food-utils";
 import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Search, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/inventory")({
   head: () => ({ meta: [{ title: "Inventory — FreshTrack" }] }),
@@ -45,6 +45,10 @@ function Inventory() {
     return true;
   });
 
+  const totalValue = filtered
+    .filter((i) => i.status !== "consumed" && i.status !== "expired")
+    .reduce((s, i) => s + itemValue(i), 0);
+
   return (
     <div className="px-5 pt-12">
       <header className="flex items-end justify-between">
@@ -53,6 +57,12 @@ function Inventory() {
             {items.length} items
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">Inventory</h1>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold flex items-center justify-end gap-1">
+            <Wallet className="size-3" /> On hand
+          </p>
+          <p className="text-base font-semibold tabular-nums">{formatRM(totalValue)}</p>
         </div>
       </header>
 
