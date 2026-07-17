@@ -39,10 +39,47 @@ function Profile() {
   const prefs = q.data.preferences;
   const [name, setName] = useState(profile?.display_name ?? "");
 
+  const [pushOn, setPushOn] = useState<boolean>(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const saveSub = useServerFn(savePushSubscription);
+  const removeSub = useServerFn(removePushSubscription);
+  const testFn = useServerFn(sendTestNotification);
+
   useEffect(() => {
     if (prefs?.dark_mode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
   }, [prefs?.dark_mode]);
+
+  useEffect(() => {
+    if (!pushSupported()) return;
+    currentPushEndpoint().then((e) => setPushOn(!!e));
+  }, []);
+
+  async function togglePush(next: boolean) {
+    if (!pushSupported()) {
+      toast.error("Notifications not supported on this device");
+      return;
+    }
+    setPushBusy(true);
+    try {
+      if (next) {
+        const sub = await subscribePush();
+        await saveSub({ data: sub });
+        setPushOn(true);
+        toast.success("Notifications enabled");
+        testFn().catch(() => {});
+      } else {
+        const endpoint = await unsubscribePush();
+        if (endpoint) await removeSub({ data: { endpoint } });
+        setPushOn(false);
+        toast.success("Notifications disabled");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't update notifications");
+    } finally {
+      setPushBusy(false);
+    }
+  }
 
   const savePrefs = useMutation({
     mutationFn: (patch: Record<string, boolean>) =>
