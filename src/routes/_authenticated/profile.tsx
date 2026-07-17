@@ -2,8 +2,19 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyProfile, updatePreferences, updateProfile } from "@/lib/profile.functions";
+import {
+  savePushSubscription,
+  removePushSubscription,
+  sendTestNotification,
+} from "@/lib/push.functions";
+import {
+  pushSupported,
+  subscribePush,
+  unsubscribePush,
+  currentPushEndpoint,
+} from "@/lib/push-client";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Moon, LogOut, ChevronRight, ShieldCheck } from "lucide-react";
+import { Bell, BellRing, Moon, LogOut, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
