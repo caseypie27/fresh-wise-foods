@@ -36,6 +36,7 @@ function AddItem() {
     expiry_date: format(addDays(new Date(), 7), "yyyy-MM-dd"),
     manufacturing_date: "",
     notes: "",
+    price: "",
   });
 
   const scanFn = useServerFn(scanFoodImage);
@@ -90,6 +91,7 @@ function AddItem() {
           expiry_date: form.expiry_date,
           manufacturing_date: form.manufacturing_date || null,
           notes: form.notes || null,
+          price: form.price ? Number(form.price) : null,
           image_url,
         },
       });
@@ -270,17 +272,31 @@ function AddItem() {
               />
             </Field>
           </div>
-          <Field label="Expiry date">
-            <input
-              type="date"
-              required
-              value={form.expiry_date}
-              onChange={(e) =>
-                setForm({ ...form, expiry_date: e.target.value })
-              }
-              className="input"
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Expiry date">
+              <input
+                type="date"
+                required
+                value={form.expiry_date}
+                onChange={(e) =>
+                  setForm({ ...form, expiry_date: e.target.value })
+                }
+                className="input"
+              />
+            </Field>
+            <Field label="Price (RM)">
+              <input
+                type="number"
+                min="0"
+                step="0.10"
+                inputMode="decimal"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="input"
+                placeholder="0.00"
+              />
+            </Field>
+          </div>
           <Field label="Notes">
             <textarea
               maxLength={500}
