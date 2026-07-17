@@ -278,7 +278,7 @@ function Stats() {
           </p>
           <p className="text-sm font-semibold mt-0.5">
             {bestWeek?.saved
-              ? `${bestWeek.saved} items saved · ${bestWeek.label}`
+              ? `${formatRM(bestWeek.saved)} saved · ${bestWeek.label}`
               : "Start logging to unlock streaks"}
           </p>
         </div>
@@ -296,7 +296,7 @@ function StatTile({
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  value: number;
+  value: number | string;
   hint: string;
   tone: "success" | "destructive";
 }) {
