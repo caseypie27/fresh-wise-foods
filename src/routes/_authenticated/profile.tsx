@@ -2,8 +2,19 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyProfile, updatePreferences, updateProfile } from "@/lib/profile.functions";
+import {
+  savePushSubscription,
+  removePushSubscription,
+  sendTestNotification,
+} from "@/lib/push.functions";
+import {
+  pushSupported,
+  subscribePush,
+  unsubscribePush,
+  currentPushEndpoint,
+} from "@/lib/push-client";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Moon, LogOut, ChevronRight, ShieldCheck } from "lucide-react";
+import { Bell, BellRing, Moon, LogOut, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
@@ -28,10 +39,47 @@ function Profile() {
   const prefs = q.data.preferences;
   const [name, setName] = useState(profile?.display_name ?? "");
 
+  const [pushOn, setPushOn] = useState<boolean>(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const saveSub = useServerFn(savePushSubscription);
+  const removeSub = useServerFn(removePushSubscription);
+  const testFn = useServerFn(sendTestNotification);
+
   useEffect(() => {
     if (prefs?.dark_mode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
   }, [prefs?.dark_mode]);
+
+  useEffect(() => {
+    if (!pushSupported()) return;
+    currentPushEndpoint().then((e) => setPushOn(!!e));
+  }, []);
+
+  async function togglePush(next: boolean) {
+    if (!pushSupported()) {
+      toast.error("Notifications not supported on this device");
+      return;
+    }
+    setPushBusy(true);
+    try {
+      if (next) {
+        const sub = await subscribePush();
+        await saveSub({ data: sub });
+        setPushOn(true);
+        toast.success("Notifications enabled");
+        testFn().catch(() => {});
+      } else {
+        const endpoint = await unsubscribePush();
+        if (endpoint) await removeSub({ data: { endpoint } });
+        setPushOn(false);
+        toast.success("Notifications disabled");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't update notifications");
+    } finally {
+      setPushBusy(false);
+    }
+  }
 
   const savePrefs = useMutation({
     mutationFn: (patch: Record<string, boolean>) =>
@@ -85,27 +133,58 @@ function Profile() {
 
       <section className="mt-6">
         <SectionTitle icon={Bell}>Notifications</SectionTitle>
-        <div className="mt-3 bg-surface rounded-2xl ring-1 ring-black/5 divide-y divide-border">
-          <Toggle
-            label="7 days before expiry"
-            checked={!!prefs?.notify_7_days}
-            onChange={(v) => savePrefs.mutate({ notify_7_days: v })}
-          />
-          <Toggle
-            label="3 days before"
-            checked={!!prefs?.notify_3_days}
-            onChange={(v) => savePrefs.mutate({ notify_3_days: v })}
-          />
-          <Toggle
-            label="1 day before"
-            checked={!!prefs?.notify_1_day}
-            onChange={(v) => savePrefs.mutate({ notify_1_day: v })}
-          />
-          <Toggle
-            label="On expiry day"
-            checked={!!prefs?.notify_expiry_day}
-            onChange={(v) => savePrefs.mutate({ notify_expiry_day: v })}
-          />
+        <div className="mt-3 bg-surface rounded-2xl ring-1 ring-black/5 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-4 bg-primary-soft/50">
+            <div className="flex items-center gap-3">
+              <div className="size-9 rounded-xl bg-primary text-primary-foreground grid place-items-center">
+                <BellRing className="size-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Push notifications</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {pushOn ? "Enabled on this device" : "Get reminders before food expires"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={pushBusy}
+              onClick={() => togglePush(!pushOn)}
+              className={`relative h-6 w-11 rounded-full transition-colors ${
+                pushOn ? "bg-primary" : "bg-muted"
+              } disabled:opacity-60`}
+              role="switch"
+              aria-checked={pushOn}
+            >
+              <span
+                className={`absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform ${
+                  pushOn ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+          <div className="divide-y divide-border">
+            <Toggle
+              label="7 days before expiry"
+              checked={!!prefs?.notify_7_days}
+              onChange={(v) => savePrefs.mutate({ notify_7_days: v })}
+            />
+            <Toggle
+              label="3 days before"
+              checked={!!prefs?.notify_3_days}
+              onChange={(v) => savePrefs.mutate({ notify_3_days: v })}
+            />
+            <Toggle
+              label="1 day before"
+              checked={!!prefs?.notify_1_day}
+              onChange={(v) => savePrefs.mutate({ notify_1_day: v })}
+            />
+            <Toggle
+              label="On expiry day"
+              checked={!!prefs?.notify_expiry_day}
+              onChange={(v) => savePrefs.mutate({ notify_expiry_day: v })}
+            />
+          </div>
         </div>
       </section>
 

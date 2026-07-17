@@ -22,6 +22,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
 import { Route as AuthenticatedItemIdRouteImport } from './routes/_authenticated/item.$id'
+import { Route as ApiPublicHooksExpiryRemindersRouteImport } from './routes/api/public/hooks/expiry-reminders'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -87,6 +88,12 @@ const AuthenticatedItemIdRoute = AuthenticatedItemIdRouteImport.update({
   path: '/item/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksExpiryRemindersRoute =
+  ApiPublicHooksExpiryRemindersRouteImport.update({
+    id: '/api/public/hooks/expiry-reminders',
+    path: '/api/public/hooks/expiry-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/recipes': typeof AuthenticatedRecipesRoute
   '/stats': typeof AuthenticatedStatsRoute
   '/item/$id': typeof AuthenticatedItemIdRoute
+  '/api/public/hooks/expiry-reminders': typeof ApiPublicHooksExpiryRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,6 +123,7 @@ export interface FileRoutesByTo {
   '/recipes': typeof AuthenticatedRecipesRoute
   '/stats': typeof AuthenticatedStatsRoute
   '/item/$id': typeof AuthenticatedItemIdRoute
+  '/api/public/hooks/expiry-reminders': typeof ApiPublicHooksExpiryRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,6 +140,7 @@ export interface FileRoutesById {
   '/_authenticated/recipes': typeof AuthenticatedRecipesRoute
   '/_authenticated/stats': typeof AuthenticatedStatsRoute
   '/_authenticated/item/$id': typeof AuthenticatedItemIdRoute
+  '/api/public/hooks/expiry-reminders': typeof ApiPublicHooksExpiryRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/stats'
     | '/item/$id'
+    | '/api/public/hooks/expiry-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/recipes'
     | '/stats'
     | '/item/$id'
+    | '/api/public/hooks/expiry-reminders'
   id:
     | '__root__'
     | '/'
@@ -176,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recipes'
     | '/_authenticated/stats'
     | '/_authenticated/item/$id'
+    | '/api/public/hooks/expiry-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +197,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicHooksExpiryRemindersRoute: typeof ApiPublicHooksExpiryRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -279,6 +293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedItemIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/expiry-reminders': {
+      id: '/api/public/hooks/expiry-reminders'
+      path: '/api/public/hooks/expiry-reminders'
+      fullPath: '/api/public/hooks/expiry-reminders'
+      preLoaderRoute: typeof ApiPublicHooksExpiryRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -313,17 +334,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicHooksExpiryRemindersRoute: ApiPublicHooksExpiryRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

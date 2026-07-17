@@ -19,7 +19,8 @@ import {
   isBefore,
   differenceInCalendarDays,
 } from "date-fns";
-import { Leaf, TrendingUp, Trash2, Sparkles, ArrowUpRight } from "lucide-react";
+import { itemValue, formatRM } from "@/lib/food-utils";
+import { Leaf, TrendingUp, Trash2, Sparkles, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/stats")({
   head: () => ({ meta: [{ title: "Stats — FreshTrack" }] }),
@@ -35,10 +36,13 @@ function Stats() {
 
   const items = itemsQ.data.items;
 
-  const { total, saved, wasted } = useMemo(() => {
+  const { total, saved, wasted, savedRM, wastedRM } = useMemo(() => {
     let saved = 0;
     let wasted = 0;
+    let savedRM = 0;
+    let wastedRM = 0;
     for (const i of items) {
+      const value = itemValue(i);
       if (i.status === "consumed" && i.consumed_at) {
         const consumedAt = parseISO(i.consumed_at);
         const expiry = parseISO(i.expiry_date);
@@ -47,22 +51,28 @@ function Stats() {
           format(consumedAt, "yyyy-MM-dd") === format(expiry, "yyyy-MM-dd")
         ) {
           saved++;
+          savedRM += value;
         } else {
           wasted++;
+          wastedRM += value;
         }
       } else {
         const days = differenceInCalendarDays(
           parseISO(i.expiry_date),
           new Date(),
         );
-        if (days < 0) wasted++;
+        if (days < 0) {
+          wasted++;
+          wastedRM += value;
+        }
       }
     }
-    return { total: items.length, saved, wasted };
+    return { total: items.length, saved, wasted, savedRM, wastedRM };
   }, [items]);
 
   const saveRate = total ? Math.round((saved / total) * 100) : 0;
-  const wasteRate = total ? Math.round((wasted / total) * 100) : 0;
+  const totalRM = savedRM + wastedRM;
+  const moneySaveRate = totalRM ? Math.round((savedRM / totalRM) * 100) : 0;
 
   const weeks = useMemo(() => {
     const arr = Array.from({ length: 6 }).map((_, idx) => {
@@ -70,6 +80,7 @@ function Stats() {
       return { start, label: format(start, "MMM d"), saved: 0, wasted: 0 };
     });
     for (const i of items) {
+      const value = itemValue(i);
       if (i.status === "consumed" && i.consumed_at) {
         const consumedAt = parseISO(i.consumed_at);
         const expiry = parseISO(i.expiry_date);
@@ -79,18 +90,25 @@ function Stats() {
         const w = arr.find(
           (w) => consumedAt >= w.start && consumedAt < addWeeks(w.start, 1),
         );
-        if (w) (isSaved ? w.saved++ : w.wasted++);
+        if (w) {
+          if (isSaved) w.saved += value;
+          else w.wasted += value;
+        }
       } else {
         const expiry = parseISO(i.expiry_date);
         if (differenceInCalendarDays(expiry, new Date()) < 0) {
           const w = arr.find(
             (w) => expiry >= w.start && expiry < addWeeks(w.start, 1),
           );
-          if (w) w.wasted++;
+          if (w) w.wasted += value;
         }
       }
     }
-    return arr;
+    return arr.map((w) => ({
+      ...w,
+      saved: Math.round(w.saved * 100) / 100,
+      wasted: Math.round(w.wasted * 100) / 100,
+    }));
   }, [items]);
 
   const bestWeek = weeks.reduce(
@@ -160,14 +178,17 @@ function Stats() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs uppercase tracking-widest opacity-80 font-semibold">
-              Save rate
+              Money saved
             </p>
-            <p className="mt-1 text-lg font-medium leading-snug">
+            <p className="mt-1 text-2xl font-semibold tabular-nums leading-none">
+              {formatRM(savedRM)}
+            </p>
+            <p className="mt-1 text-xs opacity-80">
               {saved} of {total} items reached your plate in time.
             </p>
             <div className="mt-3 inline-flex items-center gap-1 text-xs font-medium bg-white/15 px-2.5 py-1 rounded-full backdrop-blur-sm">
-              <ArrowUpRight className="size-3.5" />
-              {wasteRate}% waste rate
+              <Wallet className="size-3.5" />
+              {formatRM(wastedRM)} lost · {moneySaveRate}% saved
             </div>
           </div>
         </div>
@@ -177,16 +198,16 @@ function Stats() {
       <section className="mt-4 grid grid-cols-2 gap-3">
         <StatTile
           icon={Leaf}
-          label="Consumed before expiry"
-          value={saved}
-          hint="Saved in time"
+          label="Consumed in time"
+          value={formatRM(savedRM)}
+          hint={`${saved} item${saved === 1 ? "" : "s"} saved`}
           tone="success"
         />
         <StatTile
           icon={Trash2}
           label="Expired or wasted"
-          value={wasted}
-          hint="Missed the window"
+          value={formatRM(wastedRM)}
+          hint={`${wasted} item${wasted === 1 ? "" : "s"} lost`}
           tone="destructive"
         />
       </section>
@@ -195,9 +216,9 @@ function Stats() {
       <section className="mt-4 bg-surface rounded-3xl p-5 ring-1 ring-black/5">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-sm font-semibold">Weekly rhythm</h3>
+            <h3 className="text-sm font-semibold">Weekly money rhythm</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Saved vs wasted over 6 weeks
+              RM saved vs wasted over 6 weeks
             </p>
           </div>
           <div className="flex items-center gap-3 text-[11px] font-medium">
@@ -257,7 +278,7 @@ function Stats() {
           </p>
           <p className="text-sm font-semibold mt-0.5">
             {bestWeek?.saved
-              ? `${bestWeek.saved} items saved · ${bestWeek.label}`
+              ? `${formatRM(bestWeek.saved)} saved · ${bestWeek.label}`
               : "Start logging to unlock streaks"}
           </p>
         </div>
@@ -275,7 +296,7 @@ function StatTile({
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  value: number;
+  value: number | string;
   hint: string;
   tone: "success" | "destructive";
 }) {

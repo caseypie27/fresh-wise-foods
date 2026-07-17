@@ -5,9 +5,9 @@ import { listFoodItems } from "@/lib/items.functions";
 import { getMyProfile } from "@/lib/profile.functions";
 import { suggestRecipes } from "@/lib/ai.functions";
 import { FoodCard } from "@/components/food-card";
-import { computeStatus } from "@/lib/food-utils";
-import { Sparkles, ChefHat, Camera, Plus } from "lucide-react";
-import { format } from "date-fns";
+import { computeStatus, itemValue, formatRM } from "@/lib/food-utils";
+import { Sparkles, ChefHat, Camera, Plus, Wallet, TrendingDown } from "lucide-react";
+import { format, parseISO, isBefore } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — FreshTrack" }] }),
@@ -49,6 +49,28 @@ function Home() {
   const expired = items.filter((i) => i.status === "expired");
   const consumed = items.filter((i) => i.status === "consumed");
 
+  // Money impact (RM)
+  let savedRM = 0;
+  let wastedRM = 0;
+  for (const i of items) {
+    const value = itemValue(i);
+    if (i.status === "consumed" && i.consumed_at) {
+      const consumedAt = parseISO(i.consumed_at);
+      const expiry = parseISO(i.expiry_date);
+      if (
+        isBefore(consumedAt, expiry) ||
+        consumedAt.toDateString() === expiry.toDateString()
+      ) {
+        savedRM += value;
+      } else {
+        wastedRM += value;
+      }
+    } else if (i.status === "expired") {
+      wastedRM += value;
+    }
+  }
+  const atRiskRM = expiringWeek.reduce((s, i) => s + itemValue(i), 0);
+
   const soonest = active
     .filter((i) => i.status !== "expired")
     .sort((a, b) => a.expiry_date.localeCompare(b.expiry_date))
@@ -88,7 +110,39 @@ function Home() {
         </Link>
       </header>
 
-      <section className="mt-6 grid grid-cols-2 gap-3">
+      {/* Money impact hero */}
+      <section className="mt-6 relative overflow-hidden rounded-[28px] p-5 bg-gradient-to-br from-primary via-primary to-[oklch(0.52_0.17_150)] text-primary-foreground">
+        <div className="absolute -right-14 -top-14 size-48 rounded-full bg-white/10 blur-2xl" />
+        <div className="relative flex items-start justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest opacity-80 font-semibold flex items-center gap-1.5">
+              <Wallet className="size-3" /> Money saved
+            </p>
+            <p className="mt-1 text-3xl font-semibold tabular-nums leading-none">
+              {formatRM(savedRM)}
+            </p>
+            <p className="text-[11px] opacity-80 mt-1">
+              across {consumed.length} consumed item{consumed.length === 1 ? "" : "s"}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-widest opacity-80 font-semibold flex items-center gap-1.5 justify-end">
+              <TrendingDown className="size-3" /> Wasted
+            </p>
+            <p className="mt-1 text-lg font-semibold tabular-nums leading-none">
+              {formatRM(wastedRM)}
+            </p>
+          </div>
+        </div>
+        {atRiskRM > 0 && (
+          <div className="relative mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1.5 text-[11px] font-medium">
+            <span className="size-1.5 rounded-full bg-white animate-pulse" />
+            {formatRM(atRiskRM)} at risk this week
+          </div>
+        )}
+      </section>
+
+      <section className="mt-4 grid grid-cols-2 gap-3">
         <StatCard label="Total items" value={active.length} dot="bg-primary" />
         <StatCard
           label="Expiring this week"

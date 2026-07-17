@@ -26,6 +26,7 @@ export type Database = {
           manufacturing_date: string | null
           name: string
           notes: string | null
+          price: number | null
           quantity: number | null
           status: Database["public"]["Enums"]["food_status"]
           unit: string | null
@@ -43,6 +44,7 @@ export type Database = {
           manufacturing_date?: string | null
           name: string
           notes?: string | null
+          price?: number | null
           quantity?: number | null
           status?: Database["public"]["Enums"]["food_status"]
           unit?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           manufacturing_date?: string | null
           name?: string
           notes?: string | null
+          price?: number | null
           quantity?: number | null
           status?: Database["public"]["Enums"]["food_status"]
           unit?: string | null
@@ -119,6 +122,42 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_notified_at: string | null
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_notified_at?: string | null
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_notified_at?: string | null
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
