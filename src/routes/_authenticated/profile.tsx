@@ -53,6 +53,48 @@ function Profile() {
   const removeSub = useServerFn(removePushSubscription);
   const testFn = useServerFn(sendTestNotification);
 
+  const [locOn, setLocOn] = useState(false);
+  const [locBusy, setLocBusy] = useState(false);
+  const checkNearby = useServerFn(checkSupermarketProximity);
+
+  useEffect(() => {
+    setLocOn(locationRemindersEnabled());
+  }, []);
+
+  async function toggleLocation(next: boolean) {
+    if (!next) {
+      setLocationReminders(false);
+      setLocOn(false);
+      toast.success("Supermarket reminders off");
+      return;
+    }
+    if (!geolocationSupported()) {
+      toast.error("Location isn't supported on this device");
+      return;
+    }
+    setLocBusy(true);
+    try {
+      const pos = await requestPosition();
+      setLocationReminders(true);
+      setLocOn(true);
+      toast.success("Supermarket reminders on");
+      const res = await checkNearby({
+        data: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+      });
+      if (res.nearby && res.sent > 0) toast.info("You're near a store — sent you a nudge");
+    } catch (e) {
+      toast.error(
+        e instanceof Error && e.message.includes("denied")
+          ? "Location permission denied"
+          : "Couldn't get your location",
+      );
+    } finally {
+      setLocBusy(false);
+    }
+  }
+
+
+
   useEffect(() => {
     if (prefs?.dark_mode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
