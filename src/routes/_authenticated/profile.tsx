@@ -14,9 +14,17 @@ import {
   currentPushEndpoint,
 } from "@/lib/push-client";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, BellRing, Moon, LogOut, ShieldCheck } from "lucide-react";
+import {
+  geolocationSupported,
+  locationRemindersEnabled,
+  setLocationReminders,
+  requestPosition,
+} from "@/lib/location-client";
+import { checkSupermarketProximity } from "@/lib/geo.functions";
+import { Bell, BellRing, Moon, LogOut, ShieldCheck, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — FreshTrack" }] }),
