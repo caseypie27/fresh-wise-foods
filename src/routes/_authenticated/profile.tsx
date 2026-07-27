@@ -14,9 +14,17 @@ import {
   currentPushEndpoint,
 } from "@/lib/push-client";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, BellRing, Moon, LogOut, ShieldCheck } from "lucide-react";
+import {
+  geolocationSupported,
+  locationRemindersEnabled,
+  setLocationReminders,
+  requestPosition,
+} from "@/lib/location-client";
+import { checkSupermarketProximity } from "@/lib/geo.functions";
+import { Bell, BellRing, Moon, LogOut, ShieldCheck, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Profile — FreshTrack" }] }),
@@ -44,6 +52,48 @@ function Profile() {
   const saveSub = useServerFn(savePushSubscription);
   const removeSub = useServerFn(removePushSubscription);
   const testFn = useServerFn(sendTestNotification);
+
+  const [locOn, setLocOn] = useState(false);
+  const [locBusy, setLocBusy] = useState(false);
+  const checkNearby = useServerFn(checkSupermarketProximity);
+
+  useEffect(() => {
+    setLocOn(locationRemindersEnabled());
+  }, []);
+
+  async function toggleLocation(next: boolean) {
+    if (!next) {
+      setLocationReminders(false);
+      setLocOn(false);
+      toast.success("Supermarket reminders off");
+      return;
+    }
+    if (!geolocationSupported()) {
+      toast.error("Location isn't supported on this device");
+      return;
+    }
+    setLocBusy(true);
+    try {
+      const pos = await requestPosition();
+      setLocationReminders(true);
+      setLocOn(true);
+      toast.success("Supermarket reminders on");
+      const res = await checkNearby({
+        data: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+      });
+      if (res.nearby && res.sent > 0) toast.info("You're near a store — sent you a nudge");
+    } catch (e) {
+      toast.error(
+        e instanceof Error && e.message.includes("denied")
+          ? "Location permission denied"
+          : "Couldn't get your location",
+      );
+    } finally {
+      setLocBusy(false);
+    }
+  }
+
+
 
   useEffect(() => {
     if (prefs?.dark_mode) document.documentElement.classList.add("dark");
@@ -187,6 +237,47 @@ function Profile() {
           </div>
         </div>
       </section>
+
+      <section className="mt-6">
+        <SectionTitle icon={MapPin}>Location</SectionTitle>
+        <div className="mt-3 bg-surface rounded-2xl ring-1 ring-black/5 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-4">
+            <div className="flex items-center gap-3 pr-3">
+              <div className="size-9 rounded-xl bg-primary-soft text-primary grid place-items-center shrink-0">
+                <MapPin className="size-4" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Supermarket reminders</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Nudge me at the store about food expiring at home
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={locBusy}
+              onClick={() => toggleLocation(!locOn)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                locOn ? "bg-primary" : "bg-muted"
+              } disabled:opacity-60`}
+              role="switch"
+              aria-checked={locOn}
+            >
+              <span
+                className={`absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform ${
+                  locOn ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+          <p className="px-4 pb-4 text-[11px] text-muted-foreground">
+            Your location is only used while the app is open to check if you're near
+            a grocery store. It's never stored.
+          </p>
+        </div>
+      </section>
+
+
 
       <section className="mt-6">
         <SectionTitle icon={Moon}>Appearance</SectionTitle>

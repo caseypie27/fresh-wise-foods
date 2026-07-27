@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/bottom-nav";
+import { useSupermarketWatch } from "@/hooks/use-supermarket-watch";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthedLayout() {
+  useSupermarketWatch();
   return (
     <div className="app-shell pb-28">
       <Outlet />
@@ -20,3 +22,4 @@ function AuthedLayout() {
     </div>
   );
 }
+
