@@ -105,15 +105,47 @@ function AddItem() {
       toast.error(e instanceof Error ? e.message : "Couldn't save item"),
   });
 
-  function handleFile(file: File) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const url = reader.result as string;
+  // Downscale + compress before sending to OCR — big upload/latency win
+  function compressImage(file: File, maxSide = 1024, quality = 0.7) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Could not read image"));
+      reader.onload = () => {
+        const src = reader.result as string;
+        const img = new Image();
+        img.onerror = () => resolve(src);
+        img.onload = () => {
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          const w = Math.round(img.width * scale);
+          const h = Math.round(img.height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return resolve(src);
+          ctx.drawImage(img, 0, 0, w, h);
+          try {
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          } catch {
+            resolve(src);
+          }
+        };
+        img.src = src;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleFile(file: File) {
+    setStep("scanning");
+    try {
+      const url = await compressImage(file);
       setImageDataUrl(url);
-      setStep("scanning");
       scan.mutate(url);
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      toast.error("Couldn't read that image");
+      setStep("form");
+    }
   }
 
   return (

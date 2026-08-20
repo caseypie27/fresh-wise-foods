@@ -31,7 +31,7 @@ export const scanFoodImage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const result = await callAI({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-flash-lite",
       messages: [
         {
           role: "system",
@@ -47,6 +47,8 @@ export const scanFoodImage = createServerFn({ method: "POST" })
         },
       ],
       response_format: { type: "json_object" },
+      max_tokens: 200,
+      temperature: 0,
     });
     const txt = result?.choices?.[0]?.message?.content ?? "{}";
     try {
