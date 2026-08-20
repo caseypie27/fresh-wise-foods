@@ -156,7 +156,7 @@ function Onboarding() {
           ))}
         </div>
         <button
-          onClick={() => setPermissionStep(true)}
+          onClick={() => setPermissionStep("push")}
           className="text-sm text-muted-foreground font-medium"
         >
           Skip
