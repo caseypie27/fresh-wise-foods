@@ -33,7 +33,17 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Welcome! Check your email if confirmation is required.");
+        if (geolocationSupported() && !locationRemindersEnabled()) {
+          try {
+            await requestPosition();
+            setLocationReminders(true);
+            toast.info("Supermarket reminders on — we'll nudge you at the store");
+          } catch {
+            /* denied — continue */
+          }
+        }
         navigate({ to: "/home" });
+
       } else if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({
           email,
