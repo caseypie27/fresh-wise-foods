@@ -1,6 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ScanLine, BellRing, ChefHat, Bell } from "lucide-react";
+import { ScanLine, BellRing, ChefHat, Bell, MapPin } from "lucide-react";
+import {
+  geolocationSupported,
+  requestPosition,
+  setLocationReminders,
+} from "@/lib/location-client";
 
 export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
@@ -27,11 +32,14 @@ const slides = [
 function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [permissionStep, setPermissionStep] = useState(false);
+  const [permissionStep, setPermissionStep] = useState<null | "push" | "location">(
+    null,
+  );
+  const [locBusy, setLocBusy] = useState(false);
 
   const next = () => {
     if (step < slides.length - 1) setStep(step + 1);
-    else setPermissionStep(true);
+    else setPermissionStep("push");
   };
 
   const requestNotifications = async () => {
@@ -42,10 +50,25 @@ function Onboarding() {
         /* noop */
       }
     }
-    navigate({ to: "/auth" });
+    setPermissionStep("location");
   };
 
-  if (permissionStep) {
+  const requestLocation = async () => {
+    setLocBusy(true);
+    try {
+      if (geolocationSupported()) {
+        await requestPosition();
+        setLocationReminders(true);
+      }
+    } catch {
+      /* permission denied — continue anyway */
+    } finally {
+      setLocBusy(false);
+      navigate({ to: "/auth" });
+    }
+  };
+
+  if (permissionStep === "push") {
     return (
       <div className="app-shell min-h-screen flex flex-col px-6 py-12 bg-gradient-to-b from-primary-soft via-background to-background">
         <div className="flex-1 flex flex-col items-center justify-center text-center gap-6 animate-in fade-in duration-500">
@@ -67,6 +90,45 @@ function Onboarding() {
             Allow notifications
           </button>
           <button
+            onClick={() => setPermissionStep("location")}
+            className="w-full h-12 rounded-2xl text-muted-foreground font-medium"
+          >
+            Not now
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (permissionStep === "location") {
+    return (
+      <div className="app-shell min-h-screen flex flex-col px-6 py-12 bg-gradient-to-b from-primary-soft via-background to-background">
+        <div className="flex-1 flex flex-col items-center justify-center text-center gap-6 animate-in fade-in duration-500">
+          <div className="size-20 rounded-3xl bg-primary text-primary-foreground grid place-items-center">
+            <MapPin className="size-9" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Smart shopping reminders
+            </h2>
+            <p className="mt-3 text-muted-foreground max-w-xs">
+              Allow location access so FreshTrack can nudge you when you're at a
+              supermarket about food you already have expiring at home.
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground max-w-xs">
+              Only used while the app is open. Your location is never stored.
+            </p>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <button
+            onClick={requestLocation}
+            disabled={locBusy}
+            className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-medium disabled:opacity-60"
+          >
+            {locBusy ? "Requesting…" : "Allow location"}
+          </button>
+          <button
             onClick={() => navigate({ to: "/auth" })}
             className="w-full h-12 rounded-2xl text-muted-foreground font-medium"
           >
@@ -76,6 +138,7 @@ function Onboarding() {
       </div>
     );
   }
+
 
   const Slide = slides[step];
   const Icon = Slide.icon;
