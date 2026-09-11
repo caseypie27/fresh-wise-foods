@@ -130,6 +130,13 @@ export const checkSupermarketProximity = createServerFn({ method: "POST" })
       }
     }
 
+    if (sent > 0) {
+      await context.supabase
+        .from("user_locations")
+        .update({ last_nudge_at: new Date().toISOString() })
+        .eq("user_id", context.userId);
+    }
+
     return { nearby: true as const, store: storeName, sent, body };
   });
 
