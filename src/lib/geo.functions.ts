@@ -168,16 +168,12 @@ export const setLocationRemindersPref = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ enabled: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("user_locations").upsert(
-      {
-        user_id: context.userId,
-        lat: 0,
-        lng: 0,
-        reminders_enabled: data.enabled,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id", ignoreDuplicates: false },
-    );
+    const { data: rows, error } = await context.supabase
+      .from("user_locations")
+      .update({ reminders_enabled: data.enabled })
+      .eq("user_id", context.userId)
+      .select("user_id");
     if (error) throw new Error(error.message);
+    if (!rows?.length && data.enabled === false) return { ok: true };
     return { ok: true };
   });
