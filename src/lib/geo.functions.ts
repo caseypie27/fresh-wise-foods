@@ -130,5 +130,57 @@ export const checkSupermarketProximity = createServerFn({ method: "POST" })
       }
     }
 
+    if (sent > 0) {
+      await context.supabase
+        .from("user_locations")
+        .update({ last_nudge_at: new Date().toISOString() })
+        .eq("user_id", context.userId);
+    }
+
     return { nearby: true as const, store: storeName, sent, body };
+  });
+
+const LocationPing = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  accuracy: z.number().min(0).max(100000).optional(),
+  enabled: z.boolean().optional(),
+});
+
+/**
+ * Stores the user's most recent position so the scheduled server job can send
+ * a supermarket nudge even when the app is closed.
+ */
+export const saveMyLocation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => LocationPing.parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("user_locations").upsert(
+      {
+        user_id: context.userId,
+        lat: data.lat,
+        lng: data.lng,
+        accuracy: data.accuracy ?? null,
+        reminders_enabled: data.enabled ?? true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Turns background supermarket reminders on/off for this account. */
+export const setLocationRemindersPref = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ enabled: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("user_locations")
+      .update({ reminders_enabled: data.enabled })
+      .eq("user_id", context.userId)
+      .select("user_id");
+    if (error) throw new Error(error.message);
+    if (!rows?.length && data.enabled === false) return { ok: true };
+    return { ok: true };
   });

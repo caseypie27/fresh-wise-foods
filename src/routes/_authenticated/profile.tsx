@@ -20,7 +20,11 @@ import {
   setLocationReminders,
   requestPosition,
 } from "@/lib/location-client";
-import { checkSupermarketProximity } from "@/lib/geo.functions";
+import {
+  checkSupermarketProximity,
+  saveMyLocation,
+  setLocationRemindersPref,
+} from "@/lib/geo.functions";
 import { Bell, BellRing, Moon, LogOut, ShieldCheck, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -56,6 +60,8 @@ function Profile() {
   const [locOn, setLocOn] = useState(false);
   const [locBusy, setLocBusy] = useState(false);
   const checkNearby = useServerFn(checkSupermarketProximity);
+  const pingLocation = useServerFn(saveMyLocation);
+  const setRemindersPref = useServerFn(setLocationRemindersPref);
 
   useEffect(() => {
     setLocOn(locationRemindersEnabled());
@@ -65,6 +71,7 @@ function Profile() {
     if (!next) {
       setLocationReminders(false);
       setLocOn(false);
+      setRemindersPref({ data: { enabled: false } }).catch(() => {});
       toast.success("Supermarket reminders off");
       return;
     }
@@ -77,6 +84,24 @@ function Profile() {
       const pos = await requestPosition();
       setLocationReminders(true);
       setLocOn(true);
+      // Store the position so reminders can be sent while the app is closed.
+      await pingLocation({
+        data: {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          enabled: true,
+        },
+      }).catch(() => {});
+      if (!pushOn && pushSupported()) {
+        try {
+          const sub = await subscribePush();
+          await saveSub({ data: sub });
+          setPushOn(true);
+        } catch {
+          toast.info("Turn on push notifications to get store reminders");
+        }
+      }
       toast.success("Supermarket reminders on");
       const res = await checkNearby({
         data: { lat: pos.coords.latitude, lng: pos.coords.longitude },
@@ -249,7 +274,8 @@ function Profile() {
               <div>
                 <p className="text-sm font-semibold">Supermarket reminders</p>
                 <p className="text-[11px] text-muted-foreground">
-                  Nudge me at the store about food expiring at home
+                  Nudge me at the store about food expiring at home, even when
+                  the app is closed
                 </p>
               </div>
             </div>
@@ -271,8 +297,9 @@ function Profile() {
             </button>
           </div>
           <p className="px-4 pb-4 text-[11px] text-muted-foreground">
-            Your location is only used while the app is open to check if you're near
-            a grocery store. It's never stored.
+            Your latest location is stored privately and checked every 15 minutes
+            against nearby grocery stores, so reminders reach you even when
+            FreshTrack isn't open. Only you can see it.
           </p>
         </div>
       </section>
