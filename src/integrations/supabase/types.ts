@@ -161,6 +161,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_locations: {
+        Row: {
+          accuracy: number | null
+          last_nudge_at: string | null
+          lat: number
+          lng: number
+          reminders_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          last_nudge_at?: string | null
+          lat: number
+          lng: number
+          reminders_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          last_nudge_at?: string | null
+          lat?: number
+          lng?: number
+          reminders_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
