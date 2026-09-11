@@ -22,6 +22,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
 import { Route as AuthenticatedItemIdRouteImport } from './routes/_authenticated/item.$id'
+import { Route as ApiPublicHooksSupermarketNudgeRouteImport } from './routes/api/public/hooks/supermarket-nudge'
 import { Route as ApiPublicHooksExpiryRemindersRouteImport } from './routes/api/public/hooks/expiry-reminders'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -88,6 +89,12 @@ const AuthenticatedItemIdRoute = AuthenticatedItemIdRouteImport.update({
   path: '/item/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksSupermarketNudgeRoute =
+  ApiPublicHooksSupermarketNudgeRouteImport.update({
+    id: '/api/public/hooks/supermarket-nudge',
+    path: '/api/public/hooks/supermarket-nudge',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksExpiryRemindersRoute =
   ApiPublicHooksExpiryRemindersRouteImport.update({
     id: '/api/public/hooks/expiry-reminders',
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/stats': typeof AuthenticatedStatsRoute
   '/item/$id': typeof AuthenticatedItemIdRoute
   '/api/public/hooks/expiry-reminders': typeof ApiPublicHooksExpiryRemindersRoute
+  '/api/public/hooks/supermarket-nudge': typeof ApiPublicHooksSupermarketNudgeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/stats': typeof AuthenticatedStatsRoute
   '/item/$id': typeof AuthenticatedItemIdRoute
   '/api/public/hooks/expiry-reminders': typeof ApiPublicHooksExpiryRemindersRoute
+  '/api/public/hooks/supermarket-nudge': typeof ApiPublicHooksSupermarketNudgeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,6 +150,7 @@ export interface FileRoutesById {
   '/_authenticated/stats': typeof AuthenticatedStatsRoute
   '/_authenticated/item/$id': typeof AuthenticatedItemIdRoute
   '/api/public/hooks/expiry-reminders': typeof ApiPublicHooksExpiryRemindersRoute
+  '/api/public/hooks/supermarket-nudge': typeof ApiPublicHooksSupermarketNudgeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/stats'
     | '/item/$id'
     | '/api/public/hooks/expiry-reminders'
+    | '/api/public/hooks/supermarket-nudge'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/stats'
     | '/item/$id'
     | '/api/public/hooks/expiry-reminders'
+    | '/api/public/hooks/supermarket-nudge'
   id:
     | '__root__'
     | '/'
@@ -189,6 +201,7 @@ export interface FileRouteTypes {
     | '/_authenticated/stats'
     | '/_authenticated/item/$id'
     | '/api/public/hooks/expiry-reminders'
+    | '/api/public/hooks/supermarket-nudge'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,6 +211,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicHooksExpiryRemindersRoute: typeof ApiPublicHooksExpiryRemindersRoute
+  ApiPublicHooksSupermarketNudgeRoute: typeof ApiPublicHooksSupermarketNudgeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -293,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedItemIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/supermarket-nudge': {
+      id: '/api/public/hooks/supermarket-nudge'
+      path: '/api/public/hooks/supermarket-nudge'
+      fullPath: '/api/public/hooks/supermarket-nudge'
+      preLoaderRoute: typeof ApiPublicHooksSupermarketNudgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/expiry-reminders': {
       id: '/api/public/hooks/expiry-reminders'
       path: '/api/public/hooks/expiry-reminders'
@@ -335,6 +356,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicHooksExpiryRemindersRoute: ApiPublicHooksExpiryRemindersRoute,
+  ApiPublicHooksSupermarketNudgeRoute: ApiPublicHooksSupermarketNudgeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

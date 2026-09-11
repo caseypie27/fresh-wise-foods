@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { checkSupermarketProximity } from "@/lib/geo.functions";
+import { checkSupermarketProximity, saveMyLocation } from "@/lib/geo.functions";
 import {
   geolocationSupported,
   locationRemindersEnabled,
@@ -8,14 +8,19 @@ import {
   shouldCheck,
 } from "@/lib/location-client";
 
+const PING_EVERY_MS = 3 * 60 * 1000;
+
 /**
- * While the app is open and the user has opted in, watch their position and
- * ask the server whether they're standing near a supermarket. The server sends
- * the push notification if they have food expiring soon.
+ * While the app is open and the user has opted in, watch their position:
+ *  - store the latest position server-side so the scheduled job can send a
+ *    real push notification even when the app is closed or backgrounded,
+ *  - and opportunistically ask the server to check for a nearby supermarket.
  */
 export function useSupermarketWatch() {
   const check = useServerFn(checkSupermarketProximity);
+  const ping = useServerFn(saveMyLocation);
   const busy = useRef(false);
+  const lastPing = useRef(0);
 
   useEffect(() => {
     if (!geolocationSupported() || !locationRemindersEnabled()) return;
@@ -23,8 +28,18 @@ export function useSupermarketWatch() {
     let cancelled = false;
 
     const onPos = async (pos: GeolocationPosition) => {
-      if (cancelled || busy.current) return;
+      if (cancelled) return;
       const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+      // Keep the server's copy of the last known position fresh.
+      if (Date.now() - lastPing.current > PING_EVERY_MS) {
+        lastPing.current = Date.now();
+        ping({
+          data: { ...coords, accuracy: pos.coords.accuracy, enabled: true },
+        }).catch(() => {});
+      }
+
+      if (busy.current) return;
       if (!shouldCheck(coords)) return;
       busy.current = true;
       try {
@@ -47,5 +62,5 @@ export function useSupermarketWatch() {
       cancelled = true;
       navigator.geolocation.clearWatch(id);
     };
-  }, [check]);
+  }, [check, ping]);
 }
