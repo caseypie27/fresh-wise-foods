@@ -95,6 +95,29 @@ function Home() {
 
   const name = profileQ.data.profile?.display_name ?? "there";
 
+  const saveSub = useServerFn(savePushSubscription);
+  const testFn = useServerFn(sendTestNotification);
+  const [pushReady, setPushReady] = useState(true);
+  const [pushBusy, setPushBusy] = useState(false);
+  useEffect(() => {
+    if (!pushSupported()) return;
+    currentPushEndpoint().then((e) => setPushReady(!!e));
+  }, []);
+  async function enablePush() {
+    setPushBusy(true);
+    try {
+      const sub = await subscribePush();
+      await saveSub({ data: sub });
+      setPushReady(true);
+      toast.success("Notifications on — reminders will reach this phone");
+      testFn().catch(() => {});
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't enable notifications");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
   return (
     <div className="px-5 pt-12">
       <header className="flex justify-between items-center">
@@ -145,6 +168,28 @@ function Home() {
           </div>
         )}
       </section>
+
+      {!pushReady && pushSupported() && (
+        <section className="mt-4 bg-surface rounded-3xl ring-1 ring-black/5 p-4 flex items-center gap-3">
+          <div className="size-10 rounded-2xl bg-primary-soft text-primary grid place-items-center shrink-0">
+            <BellRing className="size-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Get expiry reminders</p>
+            <p className="text-[11px] text-muted-foreground">
+              We'll ping this phone before food expires — even when the app is closed.
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={pushBusy}
+            onClick={enablePush}
+            className="shrink-0 h-9 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-60"
+          >
+            {pushBusy ? "Enabling…" : "Enable"}
+          </button>
+        </section>
+      )}
 
       <section className="mt-4 grid grid-cols-2 gap-3">
         <StatCard label="Total items" value={active.length} dot="bg-primary" />
