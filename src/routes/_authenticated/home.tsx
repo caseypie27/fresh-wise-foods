@@ -6,8 +6,12 @@ import { getMyProfile } from "@/lib/profile.functions";
 import { suggestRecipes } from "@/lib/ai.functions";
 import { FoodCard } from "@/components/food-card";
 import { computeStatus, itemValue, formatRM } from "@/lib/food-utils";
-import { Sparkles, ChefHat, Camera, Plus, Wallet, TrendingDown } from "lucide-react";
+import { Sparkles, ChefHat, Camera, Plus, Wallet, TrendingDown, BellRing } from "lucide-react";
 import { format, parseISO, isBefore } from "date-fns";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { savePushSubscription, sendTestNotification } from "@/lib/push.functions";
+import { pushSupported, subscribePush, currentPushEndpoint } from "@/lib/push-client";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — FreshTrack" }] }),

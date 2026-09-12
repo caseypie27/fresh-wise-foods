@@ -271,6 +271,33 @@ function Profile() {
               />
             </button>
           </div>
+          {pushOn && (
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3">
+              <p className="text-[11px] text-muted-foreground">
+                Make sure alerts reach this phone — send yourself a test.
+              </p>
+              <button
+                type="button"
+                disabled={pushBusy}
+                onClick={async () => {
+                  setPushBusy(true);
+                  try {
+                    const res = await testFn();
+                    if (res.sent > 0)
+                      toast.success("Test notification sent — check your phone");
+                    else toast.error("No device registered for push yet");
+                  } catch {
+                    toast.error("Couldn't send the test notification");
+                  } finally {
+                    setPushBusy(false);
+                  }
+                }}
+                className="shrink-0 h-8 px-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-60"
+              >
+                Send test
+              </button>
+            </div>
+          )}
           {anyExpiryPrefOn && !pushOn && (
             <div className="px-4 py-3 bg-destructive/10 flex items-center justify-between gap-3">
               <p className="text-[11px] text-destructive">
