@@ -271,6 +271,27 @@ function Profile() {
               />
             </button>
           </div>
+          {anyExpiryPrefOn && !pushOn && (
+            <div className="px-4 py-3 bg-destructive/10 flex items-center justify-between gap-3">
+              <p className="text-[11px] text-destructive">
+                Expiry reminders are on, but this device isn't set up to receive
+                them yet.
+              </p>
+              <button
+                type="button"
+                disabled={pushBusy}
+                onClick={async () => {
+                  setPushBusy(true);
+                  const ok = await ensurePushRegistered();
+                  if (ok) testFn().catch(() => {});
+                  setPushBusy(false);
+                }}
+                className="shrink-0 text-xs font-semibold text-primary"
+              >
+                Enable
+              </button>
+            </div>
+          )}
           <div className="divide-y divide-border">
             <Toggle
               label="7 days before expiry"
