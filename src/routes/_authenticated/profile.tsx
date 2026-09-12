@@ -156,9 +156,42 @@ function Profile() {
     }
   }
 
+  async function ensurePushRegistered(silent = false) {
+    if (pushOn) return true;
+    if (!pushSupported()) {
+      if (!silent) toast.error("Notifications not supported on this device");
+      return false;
+    }
+    try {
+      const sub = await subscribePush();
+      await saveSub({ data: sub });
+      setPushOn(true);
+      if (!silent) toast.success("This device will now get reminders");
+      return true;
+    } catch (e) {
+      if (!silent)
+        toast.error(
+          e instanceof Error ? e.message : "Couldn't enable notifications",
+        );
+      return false;
+    }
+  }
+
+  const anyExpiryPrefOn =
+    !!prefs?.notify_7_days ||
+    !!prefs?.notify_3_days ||
+    !!prefs?.notify_1_day ||
+    !!prefs?.notify_expiry_day;
+
   const savePrefs = useMutation({
-    mutationFn: (patch: Record<string, boolean>) =>
-      updatePrefsFn({ data: patch }),
+    mutationFn: async (patch: Record<string, boolean>) => {
+      const isExpiryPref = Object.keys(patch).some((k) =>
+        k.startsWith("notify_"),
+      );
+      const turningOn = Object.values(patch).some(Boolean);
+      if (isExpiryPref && turningOn) await ensurePushRegistered();
+      return updatePrefsFn({ data: patch });
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
   });
 
@@ -238,6 +271,27 @@ function Profile() {
               />
             </button>
           </div>
+          {anyExpiryPrefOn && !pushOn && (
+            <div className="px-4 py-3 bg-destructive/10 flex items-center justify-between gap-3">
+              <p className="text-[11px] text-destructive">
+                Expiry reminders are on, but this device isn't set up to receive
+                them yet.
+              </p>
+              <button
+                type="button"
+                disabled={pushBusy}
+                onClick={async () => {
+                  setPushBusy(true);
+                  const ok = await ensurePushRegistered();
+                  if (ok) testFn().catch(() => {});
+                  setPushBusy(false);
+                }}
+                className="shrink-0 text-xs font-semibold text-primary"
+              >
+                Enable
+              </button>
+            </div>
+          )}
           <div className="divide-y divide-border">
             <Toggle
               label="7 days before expiry"
