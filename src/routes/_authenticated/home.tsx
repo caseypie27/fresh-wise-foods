@@ -11,7 +11,7 @@ import { format, parseISO, isBefore } from "date-fns";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { savePushSubscription, sendTestNotification } from "@/lib/push.functions";
-import { pushSupported, subscribePush, currentPushEndpoint } from "@/lib/push-client";
+import { pushSupported, subscribePush, currentPushEndpoint, pushPermissionMessage } from "@/lib/push-client";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — FreshTrack" }] }),
@@ -101,8 +101,20 @@ function Home() {
   const [pushBusy, setPushBusy] = useState(false);
   useEffect(() => {
     if (!pushSupported()) return;
-    currentPushEndpoint().then((e) => setPushReady(!!e));
-  }, []);
+    currentPushEndpoint()
+      .then(async (endpoint) => {
+        if (!endpoint) {
+          setPushReady(false);
+          return;
+        }
+        // A subscription may have been created during onboarding before sign-in.
+        // Save it now so background jobs can deliver to this device.
+        const subscription = await subscribePush();
+        await saveSub({ data: subscription });
+        setPushReady(true);
+      })
+      .catch(() => setPushReady(false));
+  }, [saveSub]);
   async function enablePush() {
     setPushBusy(true);
     try {
@@ -112,7 +124,7 @@ function Home() {
       toast.success("Notifications on — reminders will reach this phone");
       testFn().catch(() => {});
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't enable notifications");
+      toast.error(pushPermissionMessage(e), { duration: 8000 });
     } finally {
       setPushBusy(false);
     }

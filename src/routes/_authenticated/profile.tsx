@@ -12,6 +12,7 @@ import {
   subscribePush,
   unsubscribePush,
   currentPushEndpoint,
+  pushPermissionMessage,
 } from "@/lib/push-client";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -98,8 +99,8 @@ function Profile() {
           const sub = await subscribePush();
           await saveSub({ data: sub });
           setPushOn(true);
-        } catch {
-          toast.info("Turn on push notifications to get store reminders");
+        } catch (error) {
+          toast.info(pushPermissionMessage(error), { duration: 8000 });
         }
       }
       toast.success("Supermarket reminders on");
@@ -150,7 +151,7 @@ function Profile() {
         toast.success("Notifications disabled");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't update notifications");
+      toast.error(pushPermissionMessage(e), { duration: 8000 });
     } finally {
       setPushBusy(false);
     }
@@ -170,9 +171,7 @@ function Profile() {
       return true;
     } catch (e) {
       if (!silent)
-        toast.error(
-          e instanceof Error ? e.message : "Couldn't enable notifications",
-        );
+        toast.error(pushPermissionMessage(e), { duration: 8000 });
       return false;
     }
   }
@@ -285,6 +284,8 @@ function Profile() {
                     const res = await testFn();
                     if (res.sent > 0)
                       toast.success("Test notification sent — check your phone");
+                    else if (res.failed > 0)
+                      toast.error("The device is registered, but delivery failed");
                     else toast.error("No device registered for push yet");
                   } catch {
                     toast.error("Couldn't send the test notification");
