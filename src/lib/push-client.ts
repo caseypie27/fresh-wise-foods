@@ -60,14 +60,10 @@ export async function getRegistration(): Promise<ServiceWorkerRegistration> {
   }
 
   try {
-    const existing = await navigator.serviceWorker.getRegistration("/");
-    const registration =
-      existing ??
-      (await navigator.serviceWorker.register("/sw.js", {
-        scope: "/",
-        updateViaCache: "none",
-      }));
-    await registration.update();
+    await navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+      updateViaCache: "none",
+    });
     const ready = await navigator.serviceWorker.ready;
     if (!ready.active) {
       throw new Error("The notification service did not become active");
@@ -98,7 +94,18 @@ export async function subscribePush(): Promise<{
   keys: { p256dh: string; auth: string };
   user_agent: string;
 }> {
-  const reg = await getRegistration();
+  if (!pushSupported()) {
+    throw new PushSetupError(
+      "unsupported",
+      "Push notifications aren't supported in this browser",
+    );
+  }
+  if (!window.isSecureContext) {
+    throw new PushSetupError(
+      "insecure",
+      "Open FreshTrack using its secure https address to enable notifications",
+    );
+  }
   const currentPermission = pushPermission();
   if (currentPermission === "unsupported") {
     throw new PushSetupError(
@@ -129,6 +136,7 @@ export async function subscribePush(): Promise<{
     );
   }
 
+  const reg = await getRegistration();
   let sub = await reg.pushManager.getSubscription();
   if (sub && !applicationServerKeyMatches(sub)) {
     await sub.unsubscribe();

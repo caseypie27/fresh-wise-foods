@@ -101,8 +101,20 @@ function Home() {
   const [pushBusy, setPushBusy] = useState(false);
   useEffect(() => {
     if (!pushSupported()) return;
-    currentPushEndpoint().then((e) => setPushReady(!!e));
-  }, []);
+    currentPushEndpoint()
+      .then(async (endpoint) => {
+        if (!endpoint) {
+          setPushReady(false);
+          return;
+        }
+        // A subscription may have been created during onboarding before sign-in.
+        // Save it now so background jobs can deliver to this device.
+        const subscription = await subscribePush();
+        await saveSub({ data: subscription });
+        setPushReady(true);
+      })
+      .catch(() => setPushReady(false));
+  }, [saveSub]);
   async function enablePush() {
     setPushBusy(true);
     try {
