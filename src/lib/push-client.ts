@@ -120,6 +120,12 @@ export async function subscribePush(): Promise<{
       "Open FreshTrack using its secure https address to enable notifications",
     );
   }
+  if (isEmbedded()) {
+    throw new PushSetupError(
+      "blocked",
+      "Chrome can't grant notifications inside the FreshTrack preview. Open FreshTrack in a new tab, then tap Enable again",
+    );
+  }
   const currentPermission = pushPermission();
   if (currentPermission === "unsupported") {
     throw new PushSetupError(
