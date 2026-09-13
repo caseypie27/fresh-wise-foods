@@ -11,7 +11,7 @@ import { format, parseISO, isBefore } from "date-fns";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { savePushSubscription, sendTestNotification } from "@/lib/push.functions";
-import { pushSupported, subscribePush, currentPushEndpoint } from "@/lib/push-client";
+import { pushSupported, subscribePush, currentPushEndpoint, pushPermissionMessage } from "@/lib/push-client";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({ meta: [{ title: "Home — FreshTrack" }] }),
@@ -112,7 +112,7 @@ function Home() {
       toast.success("Notifications on — reminders will reach this phone");
       testFn().catch(() => {});
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't enable notifications");
+      toast.error(pushPermissionMessage(e), { duration: 8000 });
     } finally {
       setPushBusy(false);
     }

@@ -6,6 +6,7 @@ import {
   requestPosition,
   setLocationReminders,
 } from "@/lib/location-client";
+import { subscribePush } from "@/lib/push-client";
 
 export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
@@ -43,12 +44,12 @@ function Onboarding() {
   };
 
   const requestNotifications = async () => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      try {
-        await Notification.requestPermission();
-      } catch {
-        /* noop */
-      }
+    try {
+      // Complete the browser registration while this user gesture is active.
+      // The authenticated screen saves the returned subscription after sign-in.
+      await subscribePush();
+    } catch {
+      /* permission can be enabled later from Home or Profile */
     }
     setPermissionStep("location");
   };
