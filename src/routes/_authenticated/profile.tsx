@@ -284,6 +284,8 @@ function Profile() {
                     const res = await testFn();
                     if (res.sent > 0)
                       toast.success("Test notification sent — check your phone");
+                    else if (res.failed > 0)
+                      toast.error("The device is registered, but delivery failed");
                     else toast.error("No device registered for push yet");
                   } catch {
                     toast.error("Couldn't send the test notification");

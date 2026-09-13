@@ -58,6 +58,7 @@ export const sendTestNotification = createServerFn({ method: "POST" })
       .select("*")
       .eq("user_id", context.userId);
     let sent = 0;
+    let failed = 0;
     for (const s of subs ?? []) {
       try {
         await webpush.sendNotification(
@@ -72,9 +73,10 @@ export const sendTestNotification = createServerFn({ method: "POST" })
           }),
         );
         sent++;
-      } catch {
-        // ignore, cleanup on cron
+      } catch (error) {
+        failed++;
+        console.error("Push test delivery failed", error);
       }
     }
-    return { ok: true, sent };
+    return { ok: failed === 0, sent, failed };
   });

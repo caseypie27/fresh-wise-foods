@@ -45,6 +45,14 @@ export function pushPermissionMessage(error: unknown): string {
   return "Couldn't enable notifications on this device";
 }
 
+function isEmbedded(): boolean {
+  try {
+    return window.top !== window.self;
+  } catch {
+    return true;
+  }
+}
+
 export async function getRegistration(): Promise<ServiceWorkerRegistration> {
   if (!pushSupported()) {
     throw new PushSetupError(
@@ -56,6 +64,12 @@ export async function getRegistration(): Promise<ServiceWorkerRegistration> {
     throw new PushSetupError(
       "insecure",
       "Open FreshTrack using its secure https address to enable notifications",
+    );
+  }
+  if (isEmbedded()) {
+    throw new PushSetupError(
+      "blocked",
+      "Chrome can't grant notifications inside the FreshTrack preview. Open FreshTrack in a new tab, then tap Enable again",
     );
   }
 
@@ -170,7 +184,7 @@ export async function subscribePush(): Promise<{
 
 export async function unsubscribePush(): Promise<string | null> {
   if (!pushSupported()) return null;
-  const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+  const reg = await navigator.serviceWorker.getRegistration("/");
   if (!reg) return null;
   const sub = await reg.pushManager.getSubscription();
   if (!sub) return null;
@@ -181,7 +195,7 @@ export async function unsubscribePush(): Promise<string | null> {
 
 export async function currentPushEndpoint(): Promise<string | null> {
   if (!pushSupported()) return null;
-  const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+  const reg = await navigator.serviceWorker.getRegistration("/");
   const sub = await reg?.pushManager.getSubscription();
   return sub?.endpoint ?? null;
 }
