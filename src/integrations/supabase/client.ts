@@ -6,8 +6,8 @@ import { brokeredPreviewStorage } from './previewAuthStorage';
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = "https://hfvleslkpbtudnufkhga.supabase.co"
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_rf2QcDRoWcAoqis6_NG1BQ_pF79hrzB"
+  const SUPABASE_URL = "https://nscaibzokjunlyefqwyw.supabase.co"
+  const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zY2FpYnpva2p1bmx5ZWZxd3l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzQ2OTUsImV4cCI6MjA5NjkxMDY5NX0.31nrdUzvKIYJRrQgRVFGSFjxcY0N7wtul6FdjXyHhF0"
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
