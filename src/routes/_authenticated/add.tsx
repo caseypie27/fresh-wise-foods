@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ArrowLeft, Camera, Upload, Pencil, Loader2, RotateCw } from "lucide-react";
 import { createFoodItem } from "@/lib/items.functions";
 import { scanFoodImage } from "@/lib/ai.functions";
+import { scanWithRoboflow } from "@/lib/roboflow.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
@@ -40,11 +41,27 @@ function AddItem() {
   });
 
   const scanFn = useServerFn(scanFoodImage);
+  const roboflowFn = useServerFn(scanWithRoboflow);
   const createFn = useServerFn(createFoodItem);
 
   const scan = useMutation({
-    mutationFn: (imageDataUrl: string) =>
-      scanFn({ data: { imageDataUrl } }),
+    mutationFn: async (imageDataUrl: string) => {
+      // Primary: published Roboflow workflow (key stays server-side)
+      try {
+        const rf = await roboflowFn({ data: { imageDataUrl } });
+        if (rf.found) {
+          return {
+            name: rf.name,
+            category: "",
+            expiry_date: rf.expiry_date,
+            manufacturing_date: null,
+          };
+        }
+      } catch {
+        // fall through to the existing AI scan
+      }
+      return scanFn({ data: { imageDataUrl } });
+    },
     onSuccess: (data) => {
       setForm((f) => ({
         ...f,
