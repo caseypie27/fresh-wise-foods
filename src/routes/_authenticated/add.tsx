@@ -41,11 +41,27 @@ function AddItem() {
   });
 
   const scanFn = useServerFn(scanFoodImage);
+  const roboflowFn = useServerFn(scanWithRoboflow);
   const createFn = useServerFn(createFoodItem);
 
   const scan = useMutation({
-    mutationFn: (imageDataUrl: string) =>
-      scanFn({ data: { imageDataUrl } }),
+    mutationFn: async (imageDataUrl: string) => {
+      // Primary: published Roboflow workflow (key stays server-side)
+      try {
+        const rf = await roboflowFn({ data: { imageDataUrl } });
+        if (rf.found) {
+          return {
+            name: rf.name,
+            category: "",
+            expiry_date: rf.expiry_date,
+            manufacturing_date: null,
+          };
+        }
+      } catch {
+        // fall through to the existing AI scan
+      }
+      return scanFn({ data: { imageDataUrl } });
+    },
     onSuccess: (data) => {
       setForm((f) => ({
         ...f,
