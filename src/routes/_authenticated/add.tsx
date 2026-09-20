@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ArrowLeft, Camera, Upload, Pencil, Loader2, RotateCw } from "lucide-react";
 import { createFoodItem } from "@/lib/items.functions";
 import { scanFoodImage } from "@/lib/ai.functions";
+import { scanWithRoboflow } from "@/lib/roboflow.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
