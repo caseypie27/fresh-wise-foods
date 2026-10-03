@@ -9,34 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
-import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
-import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedRecipesRouteImport } from './routes/_authenticated/recipes'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedStatsRouteImport } from './routes/_authenticated/stats'
+import { Route as AuthenticatedRecipesRouteImport } from './routes/_authenticated/recipes'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedInventoryRouteImport } from './routes/_authenticated/inventory'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
+import { Route as AuthenticatedAddRouteImport } from './routes/_authenticated/add'
 import { Route as AuthenticatedItemIdRouteImport } from './routes/_authenticated/item.$id'
-import { Route as ApiPublicHooksExpiryRemindersRouteImport } from './routes/api/public/hooks/expiry-reminders'
 import { Route as ApiPublicHooksSupermarketNudgeRouteImport } from './routes/api/public/hooks/supermarket-nudge'
+import { Route as ApiPublicHooksExpiryRemindersRouteImport } from './routes/api/public/hooks/expiry-reminders'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -44,34 +35,23 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAddRoute = AuthenticatedAddRouteImport.update({
-  id: '/add',
-  path: '/add',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthenticatedStatsRoute = AuthenticatedStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRecipesRoute = AuthenticatedRecipesRouteImport.update({
@@ -79,9 +59,29 @@ const AuthenticatedRecipesRoute = AuthenticatedRecipesRouteImport.update({
   path: '/recipes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedStatsRoute = AuthenticatedStatsRouteImport.update({
-  id: '/stats',
-  path: '/stats',
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInventoryRoute = AuthenticatedInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAddRoute = AuthenticatedAddRouteImport.update({
+  id: '/add',
+  path: '/add',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedItemIdRoute = AuthenticatedItemIdRouteImport.update({
@@ -89,16 +89,16 @@ const AuthenticatedItemIdRoute = AuthenticatedItemIdRouteImport.update({
   path: '/item/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicHooksExpiryRemindersRoute =
-  ApiPublicHooksExpiryRemindersRouteImport.update({
-    id: '/api/public/hooks/expiry-reminders',
-    path: '/api/public/hooks/expiry-reminders',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicHooksSupermarketNudgeRoute =
   ApiPublicHooksSupermarketNudgeRouteImport.update({
     id: '/api/public/hooks/supermarket-nudge',
     path: '/api/public/hooks/supermarket-nudge',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksExpiryRemindersRoute =
+  ApiPublicHooksExpiryRemindersRouteImport.update({
+    id: '/api/public/hooks/expiry-reminders',
+    path: '/api/public/hooks/expiry-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -216,25 +216,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -244,46 +230,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/add': {
-      id: '/_authenticated/add'
-      path: '/add'
-      fullPath: '/add'
-      preLoaderRoute: typeof AuthenticatedAddRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/home': {
-      id: '/_authenticated/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof AuthenticatedHomeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/inventory': {
-      id: '/_authenticated/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+    '/_authenticated/stats': {
+      id: '/_authenticated/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof AuthenticatedStatsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/recipes': {
@@ -293,11 +265,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecipesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/stats': {
-      id: '/_authenticated/stats'
-      path: '/stats'
-      fullPath: '/stats'
-      preLoaderRoute: typeof AuthenticatedStatsRouteImport
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inventory': {
+      id: '/_authenticated/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AuthenticatedInventoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/add': {
+      id: '/_authenticated/add'
+      path: '/add'
+      fullPath: '/add'
+      preLoaderRoute: typeof AuthenticatedAddRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/item/$id': {
@@ -307,18 +307,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedItemIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/hooks/expiry-reminders': {
-      id: '/api/public/hooks/expiry-reminders'
-      path: '/api/public/hooks/expiry-reminders'
-      fullPath: '/api/public/hooks/expiry-reminders'
-      preLoaderRoute: typeof ApiPublicHooksExpiryRemindersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/hooks/supermarket-nudge': {
       id: '/api/public/hooks/supermarket-nudge'
       path: '/api/public/hooks/supermarket-nudge'
       fullPath: '/api/public/hooks/supermarket-nudge'
       preLoaderRoute: typeof ApiPublicHooksSupermarketNudgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/expiry-reminders': {
+      id: '/api/public/hooks/expiry-reminders'
+      path: '/api/public/hooks/expiry-reminders'
+      fullPath: '/api/public/hooks/expiry-reminders'
+      preLoaderRoute: typeof ApiPublicHooksExpiryRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
